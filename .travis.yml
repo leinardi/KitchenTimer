@@ -3,7 +3,9 @@ language: android
 android:
   components:
     - platform-tools
-    - tools
+    - android-22
+    - build-tools-22.0.1
+    - extra
 
 jdk:
   - openjdk7
