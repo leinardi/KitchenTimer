@@ -13,6 +13,12 @@ jdk:
 notifications:
   email: false
 
+# Turn off caching to avoid any caching problems
+# cache: false
+
+# Use the Travis Container-Based Infrastructure
+sudo: false
+
 before_install:
 
   # for gradle output style
