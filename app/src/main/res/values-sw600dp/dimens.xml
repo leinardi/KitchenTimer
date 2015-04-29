@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ Kitchen Timer
+  ~ Copyright (C) 2015 Roberto Leinardi
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms
+  ~ of the GNU General Public License as published by the Free Software Foundation,
+  ~ either version 3 of the License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY
+  ~ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+  ~ A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with this
+  ~ program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<resources >
+    <dimen name="label_font_size">18sp</dimen>
+    <dimen name="medium_font_padding">24dp</dimen>
+    <dimen name="dialpad_font_size">56sp</dimen>
+    <dimen name="timer_setup_font_size">86sp</dimen>
+    <dimen name="timer_setup_delete_start_margin">42sp</dimen>
+    <dimen name="timer_setup_label_size">28sp</dimen>
+    <dimen name="footer_button_size">80dip</dimen>
+
+    <dimen name="preferences_padding_side">48dp</dimen>
+</resources>

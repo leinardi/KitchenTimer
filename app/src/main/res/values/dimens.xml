@@ -1,0 +1,51 @@
+<!--
+  ~ Kitchen Timer
+  ~ Copyright (C) 2015 Roberto Leinardi
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms
+  ~ of the GNU General Public License as published by the Free Software Foundation,
+  ~ either version 3 of the License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY
+  ~ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+  ~ A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with this
+  ~ program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+    <dimen name="countdown_card_minimum_width">300dp</dimen>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!-- Per the design guidelines, navigation drawers should be between 240dp and 320dp:
+         https://developer.android.com/design/patterns/navigation-drawer.html -->
+    <dimen name="navigation_drawer_width">240dp</dimen>
+
+    <dimen name="divider_insets">1dp</dimen>
+
+    <dimen name="card_insets">6dp</dimen>
+
+    <dimen name="sliding_pane_width">300dp</dimen>
+
+    <dimen name="label_font_size">16sp</dimen>
+    <dimen name="timer_name_font_size">24sp</dimen>
+    <dimen name="timer_setup_font_size">56sp</dimen>
+    <dimen name="footer_button_size">56dip</dimen>
+    <dimen name="button_font_size">24sp</dimen>
+    <dimen name="dialpad_font_size">36sp</dimen>
+    <dimen name="medium_font_padding">12dp</dimen>
+
+    <!--margin should be ~ half timer_setup_font_size -->
+    <dimen name="timer_setup_delete_start_margin">28sp</dimen>
+    <dimen name="timer_setup_delete_padding">12dip</dimen>
+    <dimen name="timer_setup_label_size">18sp</dimen>
+
+    <dimen name="pause_bar_width">5dp</dimen>
+    <dimen name="pause_bar_distance">6dp</dimen>
+    <dimen name="pause_bar_height">20dp</dimen>
+
+    <dimen name="preferences_padding_side">0dp</dimen>
+</resources>

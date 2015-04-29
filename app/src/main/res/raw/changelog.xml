@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Kitchen Timer
+  ~ Copyright (C) 2015 Roberto Leinardi
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms
+  ~ of the GNU General Public License as published by the Free Software Foundation,
+  ~ either version 3 of the License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY
+  ~ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+  ~ A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with this
+  ~ program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<changelog bulletedList="true">
+
+    <changelogversion changeDate="Sep 8, 2010" versionName="1.2.0">
+        <changelogtext>Added animations! :D</changelogtext>
+        <changelogtext>Added Russian translation by UksusoFF</changelogtext>
+        <changelogtext>Added Portuguese translation by Lior</changelogtext>
+        <changelogtext>Added German translation by Lari</changelogtext>
+        <changelogtext>Added French EULA translation by Maisondouf</changelogtext>
+        <changelogtext>Fixed wrong time visualization with 3 digits minutes on Timer 2 and 3
+        </changelogtext>
+    </changelogversion>
+
+    <changelogversion changeDate="Sep 2, 2010" versionName="1.1.6">
+        <changelogtext>Added Spanish translation by lokoyaw</changelogtext>
+        <changelogtext>Added French translation by 2beta</changelogtext>
+    </changelogversion>
+
+    <changelogversion changeDate="Aug 31, 2010" versionName="1.1.5">
+        <changelogtext>Added the Donate button</changelogtext>
+        <changelogtext>Kitchen Timer is free, open source and has no ads. You can support it with a small donation. Thanks to your help, it will be possible to test the application on a greater number of devices and to keep developing it. Donating is easy: clicking HERE will take you to the Market where you can buy one of the Donate applications.</changelogtext>
+        <changelogtext>Start/Stop button stops the alarm</changelogtext>
+        <changelogtext>New graphics for Changelog and License Dialog :-)</changelogtext>
+        <changelogtext>MENU -> Exit now asks if you want to stop the timers</changelogtext>
+        <changelogtext>Some tweaks to the Graphics in Presets activity</changelogtext>
+    </changelogversion>
+
+    <changelogversion changeDate="4 Dic 2014" versionName="1.1.0">
+        <changelogtext>Oops, I forgot to update the Italian localization :P</changelogtext>
+    </changelogversion>
+
+</changelog>

@@ -1,26 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-	<!--
-		Kitchen Timer Copyright (C) 2010 Roberto Leinardi This program is free
-		software: you can redistribute it and/or modify it under the terms of
-		the GNU General Public License as published by the Free Software
-		Foundation, either version 3 of the License, or (at your option) any
-		later version. This program is distributed in the hope that it will be
-		useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-		General Public License for more details. You should have received a
-		copy of the GNU General Public License along with this program. If
-		not, see <http://www.gnu.org/licenses/>.
-	-->
+<!--
+  ~ Kitchen Timer
+  ~ Copyright (C) 2015 Roberto Leinardi
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms
+  ~ of the GNU General Public License as published by the Free Software Foundation,
+  ~ either version 3 of the License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY
+  ~ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+  ~ A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with this
+  ~ program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
 
 <resources>
-	<color
-		name="white">@android:color/white</color>
-	<color
-		name="gray">#aaa</color>
-	<color
-		name="gray_dark">#333</color>
-	<color
-		name="black">@android:color/black</color>
-	<color
-		name="indian_red_1">#F75D59</color>
+    <integer-array name="progress_colors">
+        <item>@color/md_blue_800</item>
+        <item>@color/md_red_800</item>
+        <item>@color/md_green_800</item>
+        <item>@color/md_yellow_800</item>
+    </integer-array>
+
+    <color name="colorPrimary">@color/md_grey_900</color>
+    <color name="colorPrimaryDark">@color/md_black_1000</color>
+    <color name="colorAccent">@color/md_red_500</color>
+    <color name="colorControlHighlight">@color/md_grey_700</color>
+    <color name="colorSwitchThumbNormal">@color/md_grey_300</color>
+    <color name="card_background_color">@color/md_white_1000</color>
+    <color name="secondary_text">@color/md_grey_600</color>
+    <color name="red">@color/md_red_500</color>
+    <color name="green">@color/md_green_500</color>
+
+    <color name="colorAccentPressed">#77F44336</color>
+    <color name="colorAccentFocused">#CCF44336</color>
+
+    <color name="shadowStartColor">#00616161</color>
+    <color name="shadowEndColor">#aa616161</color>
+
+    <color name="clock_white">@color/md_white_1000</color>
+    <color name="clock_gray">@color/md_grey_400</color>
+
+    <color name="dialog_gray">#28ffffff</color>
 </resources>

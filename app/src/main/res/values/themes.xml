@@ -1,19 +1,77 @@
-<?xml version="1.0" encoding="utf-8"?>
-	<!--
-		Kitchen Timer Copyright (C) 2010 Roberto Leinardi This program is free
-		software: you can redistribute it and/or modify it under the terms of
-		the GNU General Public License as published by the Free Software
-		Foundation, either version 3 of the License, or (at your option) any
-		later version. This program is distributed in the hope that it will be
-		useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-		General Public License for more details. You should have received a
-		copy of the GNU General Public License along with this program. If
-		not, see <http://www.gnu.org/licenses/>.
-	-->
+<!--
+  ~ Kitchen Timer
+  ~ Copyright (C) 2015 Roberto Leinardi
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms
+  ~ of the GNU General Public License as published by the Free Software Foundation,
+  ~ either version 3 of the License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY
+  ~ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+  ~ A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with this
+  ~ program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
 
 <resources>
-	<style name="JDsTheme" parent="android:Theme.Black">
-		<item name="android:windowNoTitle">true</item>
-	</style>
+
+    <style name="AppTheme" parent="_AppTheme">
+        <!-- The rest of your attributes -->
+    </style>
+
+    <style name="_AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Here we setting appcompat’s actionBarStyle -->
+        <!--<item name="actionBarStyle">@style/MyActionBarStyle</item>-->
+
+        <!-- colorPrimary is used for the default action bar background -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+
+        <!-- colorPrimaryDark is used for the status bar -->
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+
+        <!-- colorAccent is used as the default value for colorControlActivated
+             which is used to tint widgets -->
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorControlHighlight">@color/colorControlHighlight</item>
+        <item name="colorSwitchThumbNormal">@color/colorSwitchThumbNormal</item>
+        <!-- The rest of your attributes -->
+        <item name="android:listSelector">@drawable/item_background</item>
+        <item name="selectableItemBackground">@drawable/item_background</item>
+        <item name="android:selectableItemBackground">@drawable/item_background</item>
+        <item name="selectableItemBackgroundBorderless">@drawable/item_background_borderless</item>
+    </style>
+
+    <style name="RedTheme" parent="Theme.AppCompat.NoActionBar">
+        <!-- Here we setting appcompat’s actionBarStyle -->
+        <!--<item name="actionBarStyle">@style/MyActionBarStyle</item>-->
+
+        <!-- colorPrimary is used for the default action bar background -->
+        <item name="colorPrimary">@color/colorAccent</item>
+
+        <!-- colorPrimaryDark is used for the status bar -->
+        <item name="colorPrimaryDark">@color/md_red_700</item>
+
+        <!-- colorAccent is used as the default value for colorControlActivated
+             which is used to tint widgets -->
+        <item name="colorAccent">@color/colorPrimary</item>
+        <item name="colorControlNormal">@color/colorAccent</item>
+        <item name="colorControlActivated">@color/md_white_1000</item>
+        <item name="colorControlHighlight">@color/colorControlHighlight</item>
+        <item name="colorSwitchThumbNormal">@color/colorSwitchThumbNormal</item>
+        <!-- The rest of your attributes -->
+
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+
+        <item name="android:listSelector">@drawable/item_background</item>
+        <item name="selectableItemBackground">@drawable/item_background</item>
+        <item name="android:selectableItemBackground">@drawable/item_background</item>
+        <item name="selectableItemBackgroundBorderless">@drawable/item_background_borderless</item>
+    </style>
+
+    <style name="AppCompatAlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+    </style>
 </resources>

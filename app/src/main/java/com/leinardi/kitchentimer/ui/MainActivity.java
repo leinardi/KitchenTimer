@@ -1,645 +1,353 @@
-/**
+/*
  * Kitchen Timer
- * Copyright (C) 2010 Roberto Leinardi
- * <p/>
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * <p/>
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * <p/>
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2015 Roberto Leinardi
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this
+ * program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.leinardi.kitchentimer.ui;
 
-/*
- * TODO:
- * Opzione per far suonare anche quando silenziato
- * Visualizzare il nome dei timers nelle Impostazioni
- */
-
-import android.app.Activity;
-import android.app.AlarmManager;
-import android.app.AlertDialog;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.PowerManager;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.text.InputFilter;
-import android.text.InputType;
-import android.view.Gravity;
+import android.support.v4.widget.SlidingPaneLayout;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.ViewTreeObserver;
+import android.view.WindowManager;
 
 import com.leinardi.kitchentimer.R;
-import com.leinardi.kitchentimer.customviews.NumberPicker;
-import com.leinardi.kitchentimer.misc.Changelog;
-import com.leinardi.kitchentimer.misc.Constants;
-import com.leinardi.kitchentimer.misc.Eula;
+import com.leinardi.kitchentimer.compat.database.DatabaseManager;
+import com.leinardi.kitchentimer.model.Countdown;
+import com.leinardi.kitchentimer.model.Preset;
+import com.leinardi.kitchentimer.receiver.TimerReceiver;
+import com.leinardi.kitchentimer.ui.dialog.ChangelogDialogFragment;
+import com.leinardi.kitchentimer.ui.dialog.DeleteAllCountdownDialogFragment;
+import com.leinardi.kitchentimer.ui.fragment.CountdownListFragment;
+import com.leinardi.kitchentimer.ui.fragment.PresetListFragment;
+import com.leinardi.kitchentimer.utils.LogUtils;
 import com.leinardi.kitchentimer.utils.Utils;
+import com.nispok.snackbar.Snackbar;
+import com.nispok.snackbar.SnackbarManager;
+import com.nispok.snackbar.listeners.ActionClickListener;
+import com.nispok.snackbar.listeners.EventListener;
 
-public class MainActivity extends Activity {
-    public final static String TAG = "MainActivity";
-    private final static int[] TIMERS = {0, 1, 2};
+import io.realm.Realm;
 
-    private PowerManager.WakeLock mWakeLock = null;
-    private AlarmManager mAlarmManager;
-    private PendingIntent[] mPendingIntent;
-    private Handler mHandler = new Handler();
-    private NotificationManager mNotificationManager;
-    private SharedPreferences mPrefs;
 
-    private MyRunnable[] countdownRunnable;
+public class MainActivity extends BaseActivity {
+    private String TAG = MainActivity.class.getSimpleName();
 
-    private boolean[] timerIsRunning;
-    private int[] timerSeconds;
-    private long[] timerStartTime;
+    public static final int REQUEST_CODE_COUNTDOWN_DURATION = 1;
+    public static final int REQUEST_CODE_SETTINGS = 2;
 
-    private String[] timerDefaultName;
+    private PresetListFragment mPresetListFragment;
+    private CountdownListFragment mCountdownListFragment;
+    private SlidingPaneLayout mSlidingPaneLayout;
+    private boolean mIsSlidingPaneLayoutSlideable = true;
 
-    private NumberPicker npHours;
-    private NumberPicker npMinutes;
-    private NumberPicker npSeconds;
-
-    private Button[] btnTimer;
-    private TextView[] tvTimer;
-    private TextView[] tvTimerLabel;
-
-    private String presetName;
-
-    private ColorStateList timerDefaultColor;
-
-    boolean animationsEnabled;
-
-    /** Called when the activity is first created. */
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.activity_main);
 
-        Eula.show(this);
-        Changelog.show(this);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                | WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
 
-        timerSeconds = new int[Constants.NUM_TIMERS];
-        timerStartTime = new long[Constants.NUM_TIMERS];
-        timerIsRunning = new boolean[Constants.NUM_TIMERS];
+        initUi();
 
-        timerDefaultName = new String[Constants.NUM_TIMERS];
-        timerDefaultName[0] = getString(R.string.timer1);
-        timerDefaultName[1] = getString(R.string.timer2);
-        timerDefaultName[2] = getString(R.string.timer3);
-
-        mPendingIntent = new PendingIntent[Constants.NUM_TIMERS];
-
-        mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-
-        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
-        mWakeLock.setReferenceCounted(false);
-
-        countdownRunnable = new MyRunnable[Constants.NUM_TIMERS];
-
-        for (int timer = 0; timer < Constants.NUM_TIMERS; timer++) {
-            timerIsRunning[timer] = false;
-            countdownRunnable[timer] = new MyRunnable(timer);
-            Intent intent = new Intent(Constants.INTENT_TIMER_ENDED);
-            intent.putExtra(Constants.TIMER, timer);
-            // intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            mPendingIntent[timer] = PendingIntent.getBroadcast(this, timer,
-                    intent, 0);
+        if (checkAndImportOldDatabase()) {
+            // TODO show what's new in v2.0
+        } else {
+            showChangelogOrTutorial();
         }
+        Utils.updateSharedPreferencesAppVersion(this);
 
-        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+    }
 
-        animationsEnabled = mPrefs.getBoolean(getString(R.string.pref_animations_key), true);
-
-        acquireWakeLock();
-
-        initWidgets();
-        if (animationsEnabled) {
-            int sdkVersion = Integer.parseInt(Build.VERSION.SDK);
-            if (sdkVersion == 3) {
-                findViewById(R.id.llTimer0).startAnimation(AnimationUtils.loadAnimation(this, R.anim.decelerate_up));
-                findViewById(R.id.llTimer1).startAnimation(AnimationUtils.loadAnimation(this, R.anim.decelerate_left));
-                findViewById(R.id.llTimer2).startAnimation(AnimationUtils.loadAnimation(this, R.anim.decelerate_right));
-                findViewById(R.id.llNPB).startAnimation(AnimationUtils.loadAnimation(this, R.anim.decelerate_down));
-            } else {
-                findViewById(R.id.llTimer0).startAnimation(AnimationUtils.loadAnimation(this, R.anim.bounce_up));
-                findViewById(R.id.llTimer1).startAnimation(AnimationUtils.loadAnimation(this, R.anim.bounce_left));
-                findViewById(R.id.llTimer2).startAnimation(AnimationUtils.loadAnimation(this, R.anim.bounce_right));
-                findViewById(R.id.llNPB).startAnimation(AnimationUtils.loadAnimation(this, R.anim.bounce_down));
+    private boolean checkAndImportOldDatabase() {
+        int previousVersionCode = Utils.getPreviousAppVersionCode(this);
+        if (previousVersionCode < 200) {
+            DatabaseManager databaseManager = new DatabaseManager(this);
+            databaseManager.open();
+            boolean success = databaseManager.importPresetFromOldDatabase();
+            databaseManager.close();
+            if (success) {
+                deleteDatabase(DatabaseManager.DB_NAME);
             }
-        }
-
-        if (mPrefs.getBoolean(getString(R.string.pref_show_tips_key), true)) {
-            Toast toast = Toast.makeText(this, getString(R.string.tip1), Toast.LENGTH_LONG);
-            toast.setGravity(Gravity.TOP, 0, 0);
-            toast.show();
+            notifyDataSetChangedPresetList();
+            return true;
+        } else {
+            return false;
         }
     }
 
-    /** Get references to UI widgets and initialize them if needed */
-    private void initWidgets() {
-        npHours = (NumberPicker) findViewById(R.id.npHours);
-        npMinutes = (NumberPicker) findViewById(R.id.npMinutes);
-        npSeconds = (NumberPicker) findViewById(R.id.npSeconds);
+    private void showChangelogOrTutorial() {
+        int previousVersionCode = Utils.getPreviousAppVersionCode(this);
+        int currentVersionCode = Utils.getCurrentAppVersionCode(this);
 
-        npHours.setFormatter(NumberPicker.TWO_DIGIT_FORMATTER);
-        npMinutes.setFormatter(NumberPicker.TWO_DIGIT_FORMATTER);
-        npSeconds.setFormatter(NumberPicker.TWO_DIGIT_FORMATTER);
-
-        npHours.setRange(0, 23);
-        npMinutes.setRange(0, 59);
-        npSeconds.setRange(0, 59);
-
-        npHours.setSpeed(50);
-        npMinutes.setSpeed(50);
-        npSeconds.setSpeed(50);
-
-        npHours.setCurrent(mPrefs.getInt(Constants.PREF_HOURS, 0));
-        npMinutes.setCurrent(mPrefs.getInt(Constants.PREF_MINUTES, 0));
-        npSeconds.setCurrent(mPrefs.getInt(Constants.PREF_SECONDS, 0));
-
-        btnTimer = new Button[Constants.NUM_TIMERS];
-        btnTimer[0] = (Button) findViewById(R.id.btnTimer0);
-        btnTimer[1] = (Button) findViewById(R.id.btnTimer1);
-        btnTimer[2] = (Button) findViewById(R.id.btnTimer2);
-
-        tvTimer = new TextView[Constants.NUM_TIMERS];
-        tvTimer[0] = (TextView) this.findViewById(R.id.tvTimer0);
-        tvTimer[1] = (TextView) this.findViewById(R.id.tvTimer1);
-        tvTimer[2] = (TextView) this.findViewById(R.id.tvTimer2);
-
-        tvTimerLabel = new TextView[Constants.NUM_TIMERS];
-        tvTimerLabel[0] = (TextView) this.findViewById(R.id.tvTimer0_label);
-        tvTimerLabel[1] = (TextView) this.findViewById(R.id.tvTimer1_label);
-        tvTimerLabel[2] = (TextView) this.findViewById(R.id.tvTimer2_label);
-
-        timerDefaultColor = tvTimer[0].getTextColors();
-
-        for (int timer = 0; timer < Constants.NUM_TIMERS; timer++) {
-            tvTimerLabel[timer].setText(mPrefs.getString(Constants.PREF_TIMERS_NAMES[timer], timerDefaultName[timer]));
-            btnTimer[timer].setOnClickListener(this.clickListener);
-            tvTimerLabel[timer].setOnClickListener(this.clickListener);
-            tvTimer[timer].setOnClickListener(this.clickListener);
+        if (previousVersionCode == 0) {
+            //TODO show tutorial
+        } else if (previousVersionCode < currentVersionCode) {
+            new ChangelogDialogFragment().show(getFragmentManager(),
+                    ChangelogDialogFragment.class.getSimpleName());
         }
+    }
+
+    public void notifyDataSetChangedCountdownList() {
+        if (mCountdownListFragment != null) {
+            mCountdownListFragment.notifyDatasetChanged();
+        }
+    }
+
+    public void notifyDataSetChangedPresetList() {
+        if (mPresetListFragment != null) {
+            mPresetListFragment.notifyDatasetChanged();
+        }
+    }
+
+    private void initUi() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        setSupportActionBar(toolbar);
+
+        mPresetListFragment = (PresetListFragment) getSupportFragmentManager().findFragmentById(R.id.preset_list_fragment);
+        mCountdownListFragment = (CountdownListFragment) getSupportFragmentManager().findFragmentById(R.id.countdown_list_fragment);
+
+        mSlidingPaneLayout = (SlidingPaneLayout) findViewById(R.id.sliding_pane_layout);
+
+        mSlidingPaneLayout.setParallaxDistance(getResources().getDimensionPixelSize(R.dimen.sliding_pane_width) / 2);
+        mSlidingPaneLayout.setShadowResourceLeft(R.drawable.sliding_pane_shadow);
+        mSlidingPaneLayout.setSliderFadeColor(getResources().getColor(android.R.color.transparent));
+
+        mSlidingPaneLayout.setPanelSlideListener(new SliderListener());
+
+        mSlidingPaneLayout.getViewTreeObserver().addOnGlobalLayoutListener(
+                new FirstLayoutListener());
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-
-        SharedPreferences.Editor editor = mPrefs.edit();
-        editor.putInt(Constants.PREF_HOURS, npHours.getCurrent());
-        editor.putInt(Constants.PREF_MINUTES, npMinutes.getCurrent());
-        editor.putInt(Constants.PREF_SECONDS, npSeconds.getCurrent());
-        editor.commit();
-        for (int timer = 0; timer < Constants.NUM_TIMERS; timer++) {
-            if (timerIsRunning[timer])
-                mHandler.removeCallbacks(countdownRunnable[timer]);
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        for (int timer = 0; timer < Constants.NUM_TIMERS; timer++) {
-            timerSeconds[timer] = mPrefs.getInt(Constants.PREF_TIMERS_SECONDS[timer], 0);
-            timerStartTime[timer] = mPrefs.getLong(Constants.PREF_START_TIMES[timer], 0L);
-            timerIsRunning[timer] = (timerStartTime[timer] != 0L);
-            startRunnable(timerIsRunning[timer], timer);
-            tvTimerLabel[timer].setText(mPrefs.getString(Constants.PREF_TIMERS_NAMES[timer], timerDefaultName[timer]));
-        }
-    }
-
-    @Override
-    public void onResume() {
+    protected void onResume() {
         super.onResume();
-        acquireWakeLock();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(TimerReceiver.NOTIF_APP_OPEN, true);
+        editor.apply();
+        Utils.cancelInUseNotifications(this);
+        Utils.cancelTimesUpNotifications(this);
     }
 
     @Override
-    public void onPause() {
+    protected void onPause() {
         super.onPause();
-        releaseWakeLock();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(TimerReceiver.NOTIF_APP_OPEN, false);
+        editor.apply();
+        Utils.showInUseNotifications(this);
+        Utils.showTimesUpNotifications(this);
     }
 
-    private void acquireWakeLock() {
-        // It's okay to double-acquire this because we are not using it
-        // in reference-counted mode.
-        if (mPrefs.getBoolean(getString(R.string.pref_keep_screen_on_key), false))
-            mWakeLock.acquire();
+    /**
+     * This panel slide listener updates the action bar accordingly for each
+     * panel state.
+     */
+    private class SliderListener extends
+            SlidingPaneLayout.SimplePanelSlideListener {
+        @Override
+        public void onPanelOpened(View panel) {
+//            setTitle(R.string.preset);
+        }
+
+        @Override
+        public void onPanelClosed(View panel) {
+//            setTitle(R.string.app_name);
+        }
+
+        @Override
+        public void onPanelSlide(View view, float v) {
+            getSupportActionBar().setElevation((1 - v) * 16);
+        }
     }
 
-    private void releaseWakeLock() {
-        // Don't release the wake lock if it hasn't been created and acquired.
-        if (mWakeLock != null && mWakeLock.isHeld()) {
-            mWakeLock.release();
+    @Override
+    protected void onDestroy() {
+//        clearEndedCountdowns();
+        super.onDestroy();
+    }
+
+    private void clearEndedCountdowns() {
+        Realm realm = Countdown.getRealmInstance(this);
+        realm.beginTransaction();
+        realm.where(Countdown.class)
+                .equalTo("state", Countdown.STATE_TIMESUP)
+                .findAll()
+                .clear();
+        realm.commitTransaction();
+        realm.close();
+//        Utils.cancelInUseNotifications(this);
+//        Utils.cancelTimesUpNotifications(this);
+    }
+
+    /**
+     * This global layout listener is used to fire an event after first layout
+     * occurs and then it is removed. This gives us a chance to configure parts
+     * of the UI that adapt based on available space after they have had the
+     * opportunity to measure and layout.
+     */
+    private class FirstLayoutListener implements
+            ViewTreeObserver.OnGlobalLayoutListener {
+        @Override
+        public void onGlobalLayout() {
+            mIsSlidingPaneLayoutSlideable = mSlidingPaneLayout.isSlideable();
+            invalidateOptionsMenu();
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                mSlidingPaneLayout.getViewTreeObserver()
+                        .removeOnGlobalLayoutListener(this);
+            } else {
+                mSlidingPaneLayout.getViewTreeObserver()
+                        .removeGlobalOnLayoutListener(this);
+            }
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == Constants.REQUEST_PRESETS) {
+        if (requestCode == REQUEST_CODE_COUNTDOWN_DURATION) {
             if (resultCode == RESULT_OK) {
-                Bundle extras = data.getExtras();
-                npHours.setCurrent(extras.getInt("hours"));
-                npMinutes.setCurrent(extras.getInt("minutes"));
-                npSeconds.setCurrent(extras.getInt("seconds"));
-                presetName = extras.getString("name");
-            }
-        }
-    }
-
-    private OnClickListener clickListener = new OnClickListener() {
-        public void onClick(View v) {
-            switch (v.getId()) {
-                case R.id.tvTimer0_label:
-                    setTimerName(TIMERS[0]);
-                    break;
-                case R.id.tvTimer1_label:
-                    setTimerName(TIMERS[1]);
-                    break;
-                case R.id.tvTimer2_label:
-                    setTimerName(TIMERS[2]);
-                    break;
-                case R.id.tvTimer0:
-                    cancelTimeIsOverNotification(TIMERS[0]);
-                    break;
-                case R.id.tvTimer1:
-                    cancelTimeIsOverNotification(TIMERS[1]);
-                    break;
-                case R.id.tvTimer2:
-                    cancelTimeIsOverNotification(TIMERS[2]);
-                    break;
-                case R.id.btnTimer0:
-                    startTimer(TIMERS[0]);
-                    break;
-                case R.id.btnTimer1:
-                    startTimer(TIMERS[1]);
-                    break;
-                case R.id.btnTimer2:
-                    startTimer(TIMERS[2]);
-                    break;
-            }
-        }
-    };
-
-    private void setTimerName(final int timer) {
-        AlertDialog.Builder alt_bld = new AlertDialog.Builder(this);
-
-        alt_bld.setTitle(R.string.edit_timer_name);
-        alt_bld.setIcon(R.drawable.icon);
-
-        FrameLayout frameLayout = new FrameLayout(this);
-        frameLayout.setPadding((int) Utils.dp2px(10, this), 0, (int) Utils.dp2px(10, this), 0);
-        final EditText etTimerName = new EditText(this);
-        etTimerName.setHint(R.string.timer_name);
-        etTimerName.setMaxLines(1);
-        etTimerName.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-        etTimerName.setFilters(new InputFilter[]{
-                new InputFilter.LengthFilter(50)});
-        etTimerName.setText(mPrefs.getString(Constants.PREF_TIMERS_NAMES[timer], timerDefaultName[timer]));
-        frameLayout.addView(etTimerName);
-        alt_bld.setView(frameLayout);
-
-        alt_bld.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                String timerName = (etTimerName.getText().toString());
-                if (timerName.length() > 0) {
-                    tvTimerLabel[timer].setText(timerName);
-                    SharedPreferences.Editor editor = mPrefs.edit();
-                    editor.putString(Constants.PREF_TIMERS_NAMES[timer], timerName);
-                    editor.commit();
+                long duration = data.getLongExtra(TimerSetupActivity.EXTRA_TIME, 0);
+                if (duration > 0) {
+                    String label = data.getStringExtra(TimerSetupActivity.EXTRA_LABEL);
+                    if (!Utils.isStringNullOrEmpty(label)) {
+                        createCountdownAndSavePreset(duration, label);
+                    } else {
+                        // TODO
+                        createCountdown(duration, null);
+                    }
+                } else {
+                    // TODO Loggare errore duration
                 }
             }
-        });
-
-        alt_bld.setNeutralButton(R.string.default_text, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                tvTimerLabel[timer].setText(timerDefaultName[timer]);
-                SharedPreferences.Editor editor = mPrefs.edit();
-                editor.putString(Constants.PREF_TIMERS_NAMES[timer], timerDefaultName[timer]);
-                editor.commit();
-            }
-        });
-
-        alt_bld.setNegativeButton(R.string.cancel, null);
-
-        AlertDialog alert = alt_bld.create();
-        alert.show();
-    }
-
-    private void startTimer(int timer) {
-        if (mNotificationManager != null) {
-            mNotificationManager.cancel(timer + 10);
-        }
-        mPendingIntent[timer].cancel();
-        Intent intent = new Intent(Constants.INTENT_TIMER_ENDED);
-        intent.putExtra(Constants.TIMER, timer);
-        SharedPreferences.Editor editor = mPrefs.edit();
-        if (presetName != null) {
-            intent.putExtra(Constants.TIMER_NAME, presetName);
-            tvTimerLabel[timer].setText(presetName);
-            editor.putString(Constants.PREF_TIMERS_NAMES[timer], presetName);
-        } else {
-            intent.putExtra(Constants.TIMER_NAME, mPrefs.getString(Constants.PREF_TIMERS_NAMES[timer], timerDefaultName[timer]));
-        }
-        editor.commit();
-        mPendingIntent[timer] = PendingIntent.getBroadcast(this, timer, intent, 0);
-
-        btnTimer[timer].requestFocusFromTouch();
-        if (timerIsRunning[timer])
-            setTimerState(false, timer);
-        else {
-            timerSeconds[timer] = npHours.getCurrent() * 3600
-                    + npMinutes.getCurrent() * 60 + npSeconds.getCurrent();
-            if (timerSeconds[timer] > 0) {
-                setTimerState(true, timer);
-                if (mPrefs.getBoolean(getString(R.string.pref_show_tips_key), true)) {
-                    Toast toast = Toast.makeText(this, getString(R.string.tip1), Toast.LENGTH_LONG);
-                    toast.setGravity(Gravity.TOP, 0, 0);
-                    toast.show();
-                }
-            } else {
-                Toast.makeText(this, getString(R.string.error_time), Toast.LENGTH_LONG).show();
+        } else if (requestCode == REQUEST_CODE_SETTINGS) {
+            if (resultCode == RESULT_OK) {
+                notifyDataSetChangedPresetList();
+                LogUtils.d(TAG, "REQUEST_CODE_SETTINGS");
             }
         }
     }
 
-    private void cancelTimeIsOverNotification(int timer) {
-        if (!timerIsRunning[timer]) {
-            tvTimer[timer].setTextColor(timerDefaultColor);
-            tvTimer[timer].setShadowLayer(0f, 0f, 0f, 0);
-            if (mNotificationManager != null) {
-                mNotificationManager.cancel(timer + 10);
-            }
+    public void createCountdown(long duration, String label) {
+        Countdown countdown = new Countdown(label, duration, Countdown.STATE_RUNNING);
+        if (Utils.isStringNullOrEmpty(label)) {
+            countdown.setLabel(getString(R.string.timer_name_default, countdown.getTimerId()));
         }
+        mCountdownListFragment.addCountdownTimer(countdown);
     }
 
-    /**
-     *
-     * @author jd
-     *
-     */
-    class MyRunnable implements Runnable {
-        private int timer;
-        private Animation shake = AnimationUtils.loadAnimation(MainActivity.this, R.anim.shake);
-
-        public MyRunnable(int timer) {
-            this.timer = timer;
-        }
-
-        @Override
-        public void run() {
-            long remainingSeconds = timerSeconds[timer] - (SystemClock.elapsedRealtime() - timerStartTime[timer]) / 1000;
-            tvTimer[timer].setText(Utils.formatTime(Math.max(remainingSeconds, 0L), timer));
-            if (remainingSeconds <= 0) {
-                setTimerState(false, timer);
-                if (mPrefs.getBoolean(getString(R.string.pref_clear_timer_label_key), false)) {
-                    tvTimerLabel[timer].setText(timerDefaultName[timer]);
-                }
-                tvTimer[timer].setTextColor(getResources().getColor(R.color.indian_red_1));
-                tvTimer[timer].setShadowLayer(Utils.dp2px(7, getApplicationContext()), 0f, 0f, getResources().getColor(R.color.indian_red_1));
-                if (animationsEnabled) tvTimer[timer].startAnimation(shake);
-            }
-            if (timerIsRunning[timer]) {
-                mHandler.postDelayed(this, 1000);
-            }
-        }
+    private void createCountdownAndSavePreset(long duration, String label) {
+        createCountdown(duration, label);
+        Preset preset = new Preset(label, duration);
+        mPresetListFragment.addPreset(preset);
+        showCancelActionableToastBar(label, preset);
     }
 
-    /**
-     * Sets the timer on or off
-     *
-     * @param timer
-     */
-    private void setTimerState(boolean state, int timer) {
-        timerIsRunning[timer] = state;
-        setAlarmState(state, timer);
-        startRunnable(state, timer);
-        sendTimerIsRunningNotification(state, timer);
+    private void showCancelActionableToastBar(final String label, final Preset preset) {
+        SnackbarManager.show(
+                Snackbar.with(MainActivity.this)
+                        .text(getString(R.string.preset_saved_message, label))
+                        .actionLabel(R.string.undo)
+                        .actionColorResource(R.color.colorAccent)
+                        .actionListener(new ActionClickListener() {
+                            @Override
+                            public void onActionClicked(Snackbar snackbar) {
+                                mPresetListFragment.removePreset(preset);
+                            }
+                        })
+                        .eventListener(new EventListener() {
+                            @Override
+                            public void onShow(Snackbar snackbar) {
+                                mCountdownListFragment.fabMoveDown(-snackbar.getHeight());
+                            }
+
+                            @Override
+                            public void onShowByReplace(Snackbar snackbar) {
+                            }
+
+                            @Override
+                            public void onShown(Snackbar snackbar) {
+                            }
+
+                            @Override
+                            public void onDismiss(Snackbar snackbar) {
+                                mCountdownListFragment.fabMoveDown(0);
+                            }
+
+                            @Override
+                            public void onDismissByReplace(Snackbar snackbar) {
+                            }
+
+                            @Override
+                            public void onDismissed(Snackbar snackbar) {
+                            }
+                        }) // Snackbar's EventListener
+                        .duration(Snackbar.SnackbarDuration.LENGTH_LONG)
+        );
     }
 
-    /**
-     * Sets the alarm on or off This makes use of the alarm system service
-     *
-     * @param timer
-     */
-    private void setAlarmState(boolean state, int timer) {
-        // Log.d(TAG, String.format("SetAlarmOn(on=%b)", on));
-        if (state) {
-            timerStartTime[timer] = SystemClock.elapsedRealtime();
-            mAlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock
-                    .elapsedRealtime()
-                    + timerSeconds[timer] * 1000, mPendingIntent[timer]);
-        } else {
-            timerStartTime[timer] = 0L;
-            mAlarmManager.cancel(mPendingIntent[timer]);
-        }
-        presetName = null;
-        SharedPreferences.Editor editor = mPrefs.edit();
-        editor.putInt(Constants.PREF_TIMERS_SECONDS[timer], timerSeconds[timer]);
-        editor.putLong(Constants.PREF_START_TIMES[timer], timerStartTime[timer]);
-        editor.commit();
-    }
-
-    /**
-     *
-     * @param start
-     * @param timer
-     */
-    private void startRunnable(boolean start, int timer) {
-        // Log.d(TAG, String.format("SetCountDownVisible(visible=%b)",
-        // visible));
-        if (start) {
-            tvTimer[timer].setTextColor(getResources().getColor(R.color.white));
-            tvTimer[timer].setShadowLayer(Utils.dp2px(4, this), 0f, 0f, getResources().getColor(R.color.white));
-            btnTimer[timer].setText(R.string.stop);
-            mHandler.removeCallbacks(countdownRunnable[timer]);
-            countdownRunnable[timer].run();
-
-        } else {
-            tvTimer[timer].setTextColor(timerDefaultColor);
-            tvTimer[timer].setShadowLayer(0f, 0f, 0f, 0);
-            tvTimer[timer].setText(timer == 0 ? R.string.sixzeros
-                    : R.string.fourzeros);
-            btnTimer[timer].setText(R.string.start);
-            mHandler.removeCallbacks(countdownRunnable[timer]);
-        }
-    }
-
-    /**
-     *
-     * @param running
-     * @param timer
-     */
-    private void sendTimerIsRunningNotification(boolean running, int timer) {
-        if (running) {
-            int icon = R.drawable.stat_notify_alarm;
-            CharSequence mTickerText = getString(R.string.timer_started);
-            long when = System.currentTimeMillis();
-            Notification notification = new Notification(icon, mTickerText,
-                    when);
-
-            Context context = getApplicationContext();
-            CharSequence mContentTitle = getString(R.string.app_name);
-            CharSequence mContentText = getString(R.string.click_to_open);
-
-            Intent clickIntent = new Intent(this, MainActivity.class);
-            clickIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                    | Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                    clickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            notification.setLatestEventInfo(context, mContentTitle,
-                    mContentText, contentIntent);
-
-            notification.ledARGB = 0x00000000;
-            notification.ledOnMS = 0;
-            notification.ledOffMS = 0;
-            notification.flags |= Notification.FLAG_SHOW_LIGHTS;
-            notification.flags |= Notification.FLAG_ONGOING_EVENT;
-            notification.flags |= Notification.FLAG_NO_CLEAR;
-
-            mNotificationManager.notify(Constants.APP_NOTIF_ID, notification);
-        } else {
-            boolean thereAreTimersRunning = false;
-            for (int i = 0; i < timerIsRunning.length; i++) {
-                thereAreTimersRunning = thereAreTimersRunning || timerIsRunning[i];
-            }
-            if (!thereAreTimersRunning) {
-                mNotificationManager.cancel(Constants.APP_NOTIF_ID);
-            }
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
-     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        if (!mIsSlidingPaneLayoutSlideable) {
+            menu.findItem(R.id.action_preset).setVisible(false);
+        }
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
-     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Intent intent;
-        AlertDialog.Builder alt_bld;
-        AlertDialog alert;
-        switch (item.getItemId()) {
-            case R.id.menu_info:
-                intent = new Intent(this, InfoActivity.class);
-                startActivity(intent);
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        switch (id) {
+            case R.id.action_preset:
+                if (mSlidingPaneLayout.isOpen()) {
+                    mSlidingPaneLayout.closePane();
+                } else {
+                    mSlidingPaneLayout.openPane();
+                }
                 return true;
-            case R.id.menu_donate:
-                alt_bld = new AlertDialog.Builder(this);
-
-                alt_bld.setTitle(R.string.pref_donate);
-                alt_bld.setMessage(R.string.donate_message);
-
-                alt_bld.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        Utils.donate(getApplicationContext());
-                    }
-                });
-
-                alt_bld.setNegativeButton(R.string.no, null);
-
-                alert = alt_bld.create();
-                alert.show();
+            case R.id.action_delete_all_timers:
+                new DeleteAllCountdownDialogFragment().show(getFragmentManager(),
+                        DeleteAllCountdownDialogFragment.class.getSimpleName());
                 return true;
-            case R.id.menu_presets:
-                intent = new Intent(this, PresetsActivity.class);
-                startActivityForResult(intent, Constants.REQUEST_PRESETS);
-                return true;
-            case R.id.menu_preferences:
-                intent = new Intent(this, ConfigActivity.class);
-                startActivity(intent);
-                return true;
-            case R.id.menu_exit:
-                alt_bld = new AlertDialog.Builder(this);
-
-                alt_bld.setTitle(R.string.exit_title);
-                alt_bld.setIcon(R.drawable.ic_dialog_alert);
-                alt_bld.setMessage(R.string.exit_message);
-
-                alt_bld.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        boolean flag = false;
-                        for (int i = 0; i < timerIsRunning.length; i++) {
-                            if (timerIsRunning[i]) {
-                                mAlarmManager.cancel(mPendingIntent[i]);
-                                mHandler.removeCallbacks(countdownRunnable[i]);
-                                flag = true;
-                            }
-                            SharedPreferences.Editor editor = mPrefs.edit();
-                            editor.putInt(Constants.PREF_TIMERS_SECONDS[i], 0);
-                            editor.putLong(Constants.PREF_START_TIMES[i], 0L);
-                            editor.commit();
-                            timerSeconds[i] = 0;
-                            timerStartTime[i] = 0L;
-                            timerIsRunning[i] = false;
-                        }
-                        if (flag) {
-                            mNotificationManager.cancel(Constants.APP_NOTIF_ID);
-                        }
-                        finish();
-                    }
-                });
-
-                alt_bld.setNeutralButton(R.string.cancel, null);
-
-                alt_bld.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        finish();
-                    }
-                });
-
-                alert = alt_bld.create();
-                alert.show();
-
+            case R.id.action_settings:
+                startActivityForResult(new Intent(MainActivity.this, SettingsActivity.class), REQUEST_CODE_SETTINGS);
                 return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
+
 }

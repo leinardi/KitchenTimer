@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Kitchen Timer
+  ~ Copyright (C) 2015 Roberto Leinardi
+  ~
+  ~ This program is free software: you can redistribute it and/or modify it under the terms
+  ~ of the GNU General Public License as published by the Free Software Foundation,
+  ~ either version 3 of the License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY
+  ~ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+  ~ A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with this
+  ~ program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/info">
+        <Preference
+            android:key="@string/pref_version_key"
+            android:title="@string/app_version" />
+        <Preference
+            android:key="@string/pref_report_a_bug_key"
+            android:title="@string/pref_report_a_bug"
+            android:summary="@string/pref_report_a_bug_summary" />
+        <Preference
+            android:key="@string/pref_changelog_key"
+            android:title="@string/changelog" />
+        <Preference
+            android:key="@string/pref_licenses_key"
+            android:title="@string/open_source_licenses" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/configuration">
+        <SwitchPreference
+            android:key="@string/pref_keep_screen_on_key"
+            android:title="@string/pref_keep_screen_on"
+            android:summary="@string/pref_keep_screen_on_summary"
+            android:defaultValue="false" />
+        <SwitchPreference
+            android:key="@string/pref_notification_sound_key"
+            android:title="@string/pref_notification_sound"
+            android:summaryOn="@string/pref_notification_sound_summary_on"
+            android:summaryOff="@string/pref_notification_sound_summary_off"
+            android:defaultValue="true"
+            android:disableDependentsState="false" />
+        <SwitchPreference
+            android:key="@string/pref_notification_insistent_key"
+            android:title="@string/pref_notification_insistent"
+            android:summaryOn="@string/pref_notification_insistent_summary_on"
+            android:summaryOff="@string/pref_notification_insistent_summary_off"
+            android:defaultValue="true"
+            android:dependency="@string/pref_notification_sound_key" />
+        <RingtonePreference
+            android:defaultValue="content://settings/system/alarm_alert"
+            android:key="@string/pref_notification_ringtone_key"
+            android:title="@string/pref_notification_ringtone"
+            android:ringtoneType="alarm"
+            android:showSilent="false"
+            android:dependency="@string/pref_notification_sound_key" />
+        <SwitchPreference
+            android:key="@string/pref_notification_vibrate_key"
+            android:title="@string/pref_notification_vibrate"
+            android:summary="@string/pref_notification_vibrate_summary"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/preset">
+        <Preference
+            android:key="@string/pref_backup_key"
+            android:title="@string/export_to_sd" />
+        <Preference
+            android:key="@string/pref_import_key"
+            android:title="@string/import_from_sd" />
+        <Preference
+            android:key="@string/pref_delete_all_key"
+            android:title="@string/pref_delete_all" />
+    </PreferenceCategory>
+</PreferenceScreen>
