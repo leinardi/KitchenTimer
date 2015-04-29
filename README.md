@@ -6,6 +6,8 @@ A simple kitchen timer
 [![Crowdin](https://d322cqt584bo4o.cloudfront.net/KitchenTimer/localized.png)](https://crowdin.com/project/KitchenTimer)
 [![GitHub license](https://img.shields.io/github/license/leinardi/KitchenTimer.svg?style=plastic)](https://github.com/leinardi/KitchenTimer/blob/master/LICENSE)
 
+![Kitchen Timer](https://github.com/leinardi/KitchenTimer/blob/dev/art/KitchenTimer.gif)
+
 ## What's new in 2.0
 * Material Design
 * Unlimited timers
