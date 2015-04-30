@@ -14,7 +14,7 @@ A simple kitchen timer
 * Pause feature
 
 ## Help translate
-Click [here](https://crowdin.com/project/KitchenTimer) and help "Kitchen Timer" to be translated into your language.
+Click [here](https://crowdin.com/project/KitchenTimer) and help translate Kitchen Timer into your language.
 
 ## FOSS friendly!
 All the proprietary libraries are wrapped and the app can be build without any binary blob using the `foss` flavour.
