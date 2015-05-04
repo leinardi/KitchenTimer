@@ -19,6 +19,7 @@ package com.leinardi.kitchentimer.service;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
 import android.media.AudioAttributes;
@@ -30,6 +31,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
@@ -49,6 +51,7 @@ public class TimerRingService extends Service implements AudioManager.OnAudioFoc
     private int mInitialCallState;
 
 
+    private SharedPreferences mDefaultSharedPreferences;
     private final PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
         @Override
         public void onCallStateChanged(int state, String ignored) {
@@ -71,6 +74,7 @@ public class TimerRingService extends Service implements AudioManager.OnAudioFoc
         mTelephonyManager.listen(
                 mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
         AlarmAlertWakeLock.acquireScreenCpuWakeLock(this);
+        mDefaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
     }
 
     @Override
@@ -111,62 +115,68 @@ public class TimerRingService extends Service implements AudioManager.OnAudioFoc
             return;
         }
 
-        LogUtils.v("TimerRingService.play()");
+        if (mDefaultSharedPreferences.getBoolean(getString(R.string.pref_notification_sound_key), true)) {
+            LogUtils.v("TimerRingService.play()");
 
-        // TODO caricare ringtone da preferences
-        Uri alarmNoise = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-        // Fall back on the default alarm if the database does not have an
-        // alarm stored.
-        if (alarmNoise == null) {
-            alarmNoise = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-            LogUtils.v("Using default alarm: " + alarmNoise.toString());
-        }
+            Uri alarmNoise;
 
-        // TODO: Reuse mMediaPlayer instead of creating a new one and/or use
-        // RingtoneManager.
-        mMediaPlayer = new MediaPlayer();
-        mMediaPlayer.setOnErrorListener(new OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
-                LogUtils.e("Error occurred while playing audio.");
-                mp.stop();
-                mp.release();
-                mMediaPlayer = null;
-                return true;
-            }
-        });
+            String uriString = mDefaultSharedPreferences.getString(getString(R.string.pref_notification_ringtone_key), null);
 
-        try {
-            // Check if we are in a call. If we are, use the in-call alarm
-            // resource at a low volume to not disrupt the call.
-            if (mTelephonyManager.getCallState()
-                    != TelephonyManager.CALL_STATE_IDLE) {
-                LogUtils.v("Using the in-call alarm");
-                mMediaPlayer.setVolume(IN_CALL_VOLUME, IN_CALL_VOLUME);
-                setDataSourceFromResource(getResources(), mMediaPlayer,
-                        R.raw.in_call_alarm);
+            if (uriString != null) {
+                alarmNoise = Uri.parse(uriString);
             } else {
-                mMediaPlayer.setDataSource(this, alarmNoise);
+                // Fall back on the default alarm if the database does not have an alarm stored.
+                alarmNoise = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+                LogUtils.v("Using default alarm: " + alarmNoise.toString());
             }
-            startAlarm(mMediaPlayer);
-        } catch (Exception ex) {
-            LogUtils.v("Using the fallback ringtone");
-            // The alert may be on the sd card which could be busy right
-            // now. Use the fallback ringtone.
+
+            // TODO: Reuse mMediaPlayer instead of creating a new one and/or use
+            // RingtoneManager.
+            mMediaPlayer = new MediaPlayer();
+            mMediaPlayer.setOnErrorListener(new OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mp, int what, int extra) {
+                    LogUtils.e("Error occurred while playing audio.");
+                    mp.stop();
+                    mp.release();
+                    mMediaPlayer = null;
+                    return true;
+                }
+            });
+
             try {
-                // Must reset the media player to clear the error state.
-                mMediaPlayer.reset();
-                setDataSourceFromResource(getResources(), mMediaPlayer,
-                        R.raw.fallbackring);
+                // Check if we are in a call. If we are, use the in-call alarm
+                // resource at a low volume to not disrupt the call.
+                if (mTelephonyManager.getCallState()
+                        != TelephonyManager.CALL_STATE_IDLE) {
+                    LogUtils.v("Using the in-call alarm");
+                    mMediaPlayer.setVolume(IN_CALL_VOLUME, IN_CALL_VOLUME);
+                    setDataSourceFromResource(getResources(), mMediaPlayer,
+                            R.raw.in_call_alarm);
+                } else {
+                    mMediaPlayer.setDataSource(this, alarmNoise);
+                }
                 startAlarm(mMediaPlayer);
-            } catch (Exception ex2) {
-                // At this point we just don't play anything.
-                LogUtils.e("Failed to play fallback ringtone", ex2);
+            } catch (Exception ex) {
+                LogUtils.v("Using the fallback ringtone");
+                // The alert may be on the sd card which could be busy right
+                // now. Use the fallback ringtone.
+                try {
+                    // Must reset the media player to clear the error state.
+                    mMediaPlayer.reset();
+                    setDataSourceFromResource(getResources(), mMediaPlayer,
+                            R.raw.fallbackring);
+                    startAlarm(mMediaPlayer);
+                } catch (Exception ex2) {
+                    // At this point we just don't play anything.
+                    LogUtils.e("Failed to play fallback ringtone", ex2);
+                }
             }
+
+            mPlaying = true;
         }
 
-        //TODO caricare vibrate da preferences
-        if (true) {
+        if (mDefaultSharedPreferences.getBoolean(getString(R.string.pref_version_key), true)) {
             Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 vibrator.vibrate(sVibratePattern, 0);
@@ -178,8 +188,6 @@ public class TimerRingService extends Service implements AudioManager.OnAudioFoc
                 vibrator.vibrate(sVibratePattern, 0, VIBRATION_ATTRIBUTES);
             }
         }
-
-        mPlaying = true;
     }
 
     // Do the common stuff when starting the alarm.
@@ -189,8 +197,9 @@ public class TimerRingService extends Service implements AudioManager.OnAudioFoc
         // do not play alarms if stream volume is 0 (typically because ringer mode is silent).
         if (audioManager.getStreamVolume(AudioManager.STREAM_ALARM) != 0) {
             player.setAudioStreamType(AudioManager.STREAM_ALARM);
-            // TODO read insistent value from preferences
-            player.setLooping(true);
+            if (mDefaultSharedPreferences.getBoolean(getString(R.string.pref_notification_insistent_key), true)) {
+                player.setLooping(true);
+            }
             player.prepare();
             audioManager.requestAudioFocus(this, AudioManager.STREAM_ALARM, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
             player.start();

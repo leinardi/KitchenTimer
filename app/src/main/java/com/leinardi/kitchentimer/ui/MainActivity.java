@@ -58,17 +58,22 @@ public class MainActivity extends BaseActivity {
     private CountdownListFragment mCountdownListFragment;
     private SlidingPaneLayout mSlidingPaneLayout;
     private boolean mIsSlidingPaneLayoutSlideable = true;
+    private SharedPreferences mDefaultSharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mDefaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
                 | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
-                | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
+
+        if (mDefaultSharedPreferences.getBoolean(getString(R.string.pref_keep_screen_on_key), false));
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         initUi();
 
