@@ -6,3 +6,4 @@
 /captures
 *.iml
 /keystore
+.crowdin.yaml
