@@ -145,6 +145,6 @@
 
     <string name="preset_saved_message">%1$s preset saved</string>
     <string name="action_delete_all_timers">Delete all timers</string>
-    <string name="delete_timers_title">Delete all timers?</string>
+    <string name="delete_timers_title">Delete all timers</string>
     <string name="delete_timers_message">Are you sure you want to delete all the timers?</string>
 </resources>

@@ -15,6 +15,6 @@
   -->
 
 <resources>
-    <string name="app_name">Kitchen Timer</string>
-    <string name="changelog_row_bulletpoint">\u2022</string>
+    <string name="app_name" translatable="false">Kitchen Timer</string>
+    <string name="changelog_row_bulletpoint" translatable="false">\u2022</string>
 </resources>

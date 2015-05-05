@@ -16,16 +16,16 @@
   -->
 
 <resources>
-    <string name="pref_version_key">pref_version_key</string>
-    <string name="pref_licenses_key">pref_licenses_key</string>
-    <string name="pref_changelog_key">pref_changelog_key</string>
-    <string name="pref_backup_key">pref_backup_key</string>
-    <string name="pref_import_key">pref_import_key</string>
-    <string name="pref_delete_all_key">pref_delete_all_key</string>
-    <string name="pref_report_a_bug_key">pref_report_a_bug_key</string>
-    <string name="pref_keep_screen_on_key">pref_keep_screen_on_key</string>
-    <string name="pref_notification_sound_key">pref_notification_sound</string>
-    <string name="pref_notification_insistent_key">pref_notification_insistent</string>
-    <string name="pref_notification_ringtone_key">pref_notification_ringtone</string>
-    <string name="pref_notification_vibrate_key">pref_notification_vibrate</string>
+    <string name="pref_version_key" translatable="false">pref_version_key</string>
+    <string name="pref_licenses_key" translatable="false">pref_licenses_key</string>
+    <string name="pref_changelog_key" translatable="false">pref_changelog_key</string>
+    <string name="pref_backup_key" translatable="false">pref_backup_key</string>
+    <string name="pref_import_key" translatable="false">pref_import_key</string>
+    <string name="pref_delete_all_key" translatable="false">pref_delete_all_key</string>
+    <string name="pref_report_a_bug_key" translatable="false">pref_report_a_bug_key</string>
+    <string name="pref_keep_screen_on_key" translatable="false">pref_keep_screen_on_key</string>
+    <string name="pref_notification_sound_key" translatable="false">pref_notification_sound</string>
+    <string name="pref_notification_insistent_key" translatable="false">pref_notification_insistent</string>
+    <string name="pref_notification_ringtone_key" translatable="false">pref_notification_ringtone</string>
+    <string name="pref_notification_vibrate_key" translatable="false">pref_notification_vibrate</string>
 </resources>
