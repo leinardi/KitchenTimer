@@ -145,6 +145,7 @@ public class TimerReceiver extends BroadcastReceiver {
 
             // Start the MainActivity activity.
             Intent timersAlert = new Intent(context, MainActivity.class);
+            timersAlert.putExtra(MainActivity.EXTRA_TIMES_UP, true);
             timersAlert.setFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_USER_ACTION);
             context.startActivity(timersAlert);

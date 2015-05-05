@@ -51,6 +51,7 @@ import io.realm.Realm;
 public class MainActivity extends BaseActivity {
     private String TAG = MainActivity.class.getSimpleName();
 
+    public static final String EXTRA_TIMES_UP = "EXTRA_TIMES_UP";
     public static final int REQUEST_CODE_COUNTDOWN_DURATION = 1;
     public static final int REQUEST_CODE_SETTINGS = 2;
 
@@ -72,8 +73,9 @@ public class MainActivity extends BaseActivity {
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
 
-        if (mDefaultSharedPreferences.getBoolean(getString(R.string.pref_keep_screen_on_key), false));
+        if (mDefaultSharedPreferences.getBoolean(getString(R.string.pref_keep_screen_on_key), false)) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
 
         initUi();
 
