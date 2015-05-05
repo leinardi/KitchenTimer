@@ -108,7 +108,7 @@
     <string name="presets_import_error">An error occurred during import</string>
     <string name="presets_delete_all_success">Presets deleted successfully</string>
     <string name="presets_delete_all_error">An error occurred while deleting the presets</string>
-    <string name="preset_recyclerview_hint">Give a name to an alarm during creation to save it</string>
+    <string name="preset_recyclerview_hint">Give a name to a timer during creation to save it</string>
     <string name="unable_to_read_file">Unable to read file</string>
 
 

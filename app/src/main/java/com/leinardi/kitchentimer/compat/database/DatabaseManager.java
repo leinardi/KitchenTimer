@@ -144,7 +144,7 @@ public class DatabaseManager {
                 int minutes = cursor.getInt(cursor.getColumnIndex(FoodMetaData.MINUTES));
                 int seconds = cursor.getInt(cursor.getColumnIndex(FoodMetaData.SECONDS));
                 String label = cursor.getString(cursor.getColumnIndex(FoodMetaData.NAME));
-                long duration = hours * 60 * 60 + minutes * 60 + seconds * DateUtils.SECOND_IN_MILLIS;
+                long duration = (hours * 60 * 60 + minutes * 60 + seconds) * DateUtils.SECOND_IN_MILLIS;
 
                 Preset preset = new Preset();
                 preset.setLabel(label);

@@ -137,7 +137,7 @@ public class PresetImportExportManager {
                         int minutes = Integer.parseInt(row[2]);
                         int seconds = Integer.parseInt(row[3]);
 
-                        long duration = hours * 60 * 60 + minutes * 60 + seconds * DateUtils.SECOND_IN_MILLIS;
+                        long duration = (hours * 60 * 60 + minutes * 60 + seconds) * DateUtils.SECOND_IN_MILLIS;
                         preset.setDuration(duration);
                     } catch (NumberFormatException nFE) {
                         LogUtils.e("importCSV", "NumberFormat Error", nFE);
