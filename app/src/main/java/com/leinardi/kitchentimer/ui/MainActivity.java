@@ -24,6 +24,7 @@ package com.leinardi.kitchentimer.ui;
  * Visualizzare il nome dei timers nelle Impostazioni
  */
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -35,6 +36,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -61,7 +63,6 @@ import com.leinardi.kitchentimer.R;
 import com.leinardi.kitchentimer.customviews.NumberPicker;
 import com.leinardi.kitchentimer.misc.Changelog;
 import com.leinardi.kitchentimer.misc.Constants;
-import com.leinardi.kitchentimer.misc.Eula;
 import com.leinardi.kitchentimer.utils.Utils;
 
 public class MainActivity extends Activity {
@@ -97,14 +98,24 @@ public class MainActivity extends Activity {
 
     boolean animationsEnabled;
 
-    /** Called when the activity is first created. */
+    /**
+     * Called when the activity is first created.
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        Eula.show(this);
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+//        Eula.show(this);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1
+                && mPrefs.getBoolean(getString(R.string.show_beta_tester_wanted_alert_key), true)) {
+            displayBetaTesterWanted();
+        }
         Changelog.show(this);
+
 
         timerSeconds = new int[Constants.NUM_TIMERS];
         timerStartTime = new long[Constants.NUM_TIMERS];
@@ -137,8 +148,6 @@ public class MainActivity extends Activity {
 
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-
         animationsEnabled = mPrefs.getBoolean(getString(R.string.pref_animations_key), true);
 
         acquireWakeLock();
@@ -166,7 +175,32 @@ public class MainActivity extends Activity {
         }
     }
 
-    /** Get references to UI widgets and initialize them if needed */
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+    private void displayBetaTesterWanted() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.dialog_beta_tester_wanted_title)
+                .setMessage(R.string.dialog_beta_tester_wanted_message)
+                .setPositiveButton(R.string.sure, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://plus.google.com/u/0/communities/114655530974722547377")));
+                    }
+                })
+                .setNeutralButton(R.string.dont_show_again, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        mPrefs.edit().putBoolean(getString(R.string.show_beta_tester_wanted_alert_key), false).apply();
+                    }
+                })
+                .setNegativeButton(R.string.not_now, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
+    }
+
+    /**
+     * Get references to UI widgets and initialize them if needed
+     */
     private void initWidgets() {
         npHours = (NumberPicker) findViewById(R.id.npHours);
         npMinutes = (NumberPicker) findViewById(R.id.npMinutes);
@@ -407,9 +441,7 @@ public class MainActivity extends Activity {
     }
 
     /**
-     *
      * @author jd
-     *
      */
     class MyRunnable implements Runnable {
         private int timer;
@@ -474,7 +506,6 @@ public class MainActivity extends Activity {
     }
 
     /**
-     *
      * @param start
      * @param timer
      */
@@ -499,7 +530,6 @@ public class MainActivity extends Activity {
     }
 
     /**
-     *
      * @param running
      * @param timer
      */

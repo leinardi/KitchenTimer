@@ -8,8 +8,8 @@ android {
         applicationId "com.leinardi.kitchentimer"
         minSdkVersion 3
         targetSdkVersion 22
-        versionCode 121
-        versionName "1.2.0"
+        versionCode 122
+        versionName "1.2.1"
     }
     buildTypes {
         release {
