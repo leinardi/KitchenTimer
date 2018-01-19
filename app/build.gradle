@@ -11,10 +11,30 @@ android {
         versionCode 121
         versionName "1.2.0"
     }
+
+    def isKeystoreInfoAvailable = file(KEYSTORE_PATH).exists() && file(KEYSTORE_PROPERTIES_PATH).exists()
+
+    signingConfigs {
+        if (isKeystoreInfoAvailable) {
+            release {
+                Properties props = new Properties()
+                props.load(new FileInputStream(file(KEYSTORE_PROPERTIES_PATH)))
+                storeFile file(KEYSTORE_PATH)
+                storePassword props['store.password']
+                keyAlias props['key.alias']
+                keyPassword props['key.password']
+            }
+        }
+    }
+
     buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        if (isKeystoreInfoAvailable) {
+            release {
+                minifyEnabled true
+                shrinkResources true
+                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+                signingConfig signingConfigs.release
+            }
         }
     }
 
